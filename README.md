@@ -1,6 +1,6 @@
-# Dida\HTML 组件库
+# Dida\Html 组件库
 
-`Dida\HTML` 是一个HTML生成器，可以方便的从代码中生成HTML代码。它是 [宙品科技](http://zeupin.com) 开源的 [Dida框架](http://dida.zeupin.com) 的一个功能组件库。
+`Dida\Html` 是一个HTML生成器，可以方便的从代码中生成HTML代码。它是 [宙品科技](http://zeupin.com) 开源的 [Dida框架](http://dida.zeupin.com) 的一个功能组件库。
 
 * Home <https://github.com/zeupin/dida-html>
 * Wiki <https://github.com/zeupin/dida-html/wiki>
