@@ -1,0 +1,23 @@
+{
+  "name": "dida/html",
+  "description": "A HTML Component.",
+  "type": "library",
+  "license": "MIT",
+  "homepage": "https://github.com/zeupin/dida-html",
+  "authors": [
+    {
+      "name": "Macc Liu",
+      "email": "maccliu@zeupin.com",
+      "homepage": "https://github.com/maccliu"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^5.4 || ^7.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Dida\\": "src/Dida"
+    }
+  }
+}
