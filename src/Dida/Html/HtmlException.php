@@ -20,4 +20,6 @@ class HtmlException extends \Exception
 
     const INVALID_PROPERTY_VALUE = 1002;
 
+    const INVALID_ELEMENT_TYPE = 1003;
+
 }

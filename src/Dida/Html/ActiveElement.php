@@ -246,11 +246,20 @@ class ActiveElement
     }
 
 
-    public function &addChild($tag = null)
+    public function &addChild($element = null)
     {
-        $element = new \Dida\HTML\ActiveElement($tag);
-        $this->children[] = &$element;
-        return $element;
+        if (is_null($element) || is_string($element)) {
+            $ele = new \Dida\HTML\ActiveElement($element);
+            $this->children[] = &$ele;
+            return $ele;
+        }
+
+        if (is_object($element) && method_exists($element, 'build')) {
+            $this->children[] = &$element;
+            return $element;
+        }
+
+        throw new HtmlException(null, HtmlException::INVALID_ELEMENT_TYPE);
     }
 
 
