@@ -66,6 +66,15 @@ class ActiveElement
     }
 
 
+    public static function &make($tag = null, $more = null)
+    {
+        $element = new ActiveElement();
+        $element->setTag($tag, $more);
+
+        return $element;
+    }
+
+
     public function setTag($tag = null, $more = null)
     {
         if (is_null($tag)) {
@@ -101,6 +110,13 @@ class ActiveElement
     }
 
 
+    public function setType($type)
+    {
+        $this->props['type'] = $type;
+        return $this;
+    }
+
+
     public function setID($id)
     {
         $this->props['id'] = $id;
@@ -126,6 +142,12 @@ class ActiveElement
     {
         $this->props['style'] = $style;
         return $this;
+    }
+
+
+    public function getType()
+    {
+        return $this->props['type'];
     }
 
 
@@ -262,7 +284,7 @@ class ActiveElement
             throw new HtmlException(null, HtmlException::INVALID_ELEMENT_TYPE);
         }
 
-        $ele->belongsTo = &$this;
+        $ele->belongsTo = $this;
 
         return $ele;
     }
@@ -345,13 +367,13 @@ class ActiveElement
     {
         $output = [];
 
-        if (!is_null($this->before) && ($this->belongsTo === $this)) {
+        if (!is_null($this->before) && ($this->before->belongsTo === $this)) {
             $output[] = $this->before->build();
         }
 
         $output[] = $this->buildMe();
 
-        if (!is_null($this->after) && ($this->belongsTo === $this)) {
+        if (!is_null($this->after) && ($this->after->belongsTo === $this)) {
             $output[] = $this->after->build();
         }
 
