@@ -22,4 +22,6 @@ class HtmlException extends \Exception
 
     const INVALID_ELEMENT_TYPE = 1003;
 
+    const INVALID_TAG_TYPE = 1004;
+
 }

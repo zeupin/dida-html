@@ -47,6 +47,8 @@ class ActiveElement
 
     protected $innerHTML = '';
 
+    public $belongsTo = null;
+
     protected $wrapper = null;
 
     protected $before = null;
@@ -66,18 +68,36 @@ class ActiveElement
 
     public function setTag($tag = null, $more = null)
     {
-        $this->tag = $tag;
-        if ($this->tag) {
+        if (is_null($tag)) {
+            $this->tag = null;
+            $this->opentag = '';
+            $this->autoclose = false;
+            return $this;
+        }
+
+        if (is_string($tag)) {
+            $tag = trim($tag);
+
+            if ($tag === '') {
+                $this->tag = null;
+                $this->opentag = '';
+                $this->autoclose = false;
+                return $this;
+            }
+
+            $this->tag = $tag;
             if ($more) {
                 $this->opentag = $this->tag . ' ' . trim($more);
             } else {
                 $this->opentag = $this->tag;
             }
-        } else {
-            $this->opentag = '';
+
+            $this->autoclose = array_key_exists($tag, $this->autoclose_element_list);
+
+            return $this;
         }
-        $this->autoclose = array_key_exists($tag, $this->autoclose_element_list);
-        return $this;
+
+        throw new HtmlException('', HtmlException::INVALID_TAG_TYPE);
     }
 
 
@@ -232,34 +252,43 @@ class ActiveElement
     }
 
 
-    public function &insertBefore($tag = null)
+    protected function &addNew(&$element = null)
     {
-        $this->before = new \Dida\HTML\ActiveElement($tag);
-        return $this->before;
+        if (is_null($element) || is_string($element)) {
+            $ele = new \Dida\HTML\ActiveElement($element);
+        } elseif (is_object($element) && is_a($element, __CLASS__)) {
+            $ele = &$element;
+        } else {
+            throw new HtmlException(null, HtmlException::INVALID_ELEMENT_TYPE);
+        }
+
+        $ele->belongsTo = &$this;
+
+        return $ele;
     }
 
 
-    public function &insertAfter($tag = null)
+    public function &addBefore($element = null)
     {
-        $this->after = new \Dida\HTML\ActiveElement($tag);
-        return $this->after;
+        $ele = $this->addNew($element);
+        $this->before = &$ele;
+        return $ele;
+    }
+
+
+    public function &addAfter($element = null)
+    {
+        $ele = $this->addNew($element);
+        $this->after = &$ele;
+        return $ele;
     }
 
 
     public function &addChild($element = null)
     {
-        if (is_null($element) || is_string($element)) {
-            $ele = new \Dida\HTML\ActiveElement($element);
-            $this->children[] = &$ele;
-            return $ele;
-        }
-
-        if (is_object($element) && method_exists($element, 'build')) {
-            $this->children[] = &$element;
-            return $element;
-        }
-
-        throw new HtmlException(null, HtmlException::INVALID_ELEMENT_TYPE);
+        $ele = $this->addNew($element);
+        $this->children[] = &$ele;
+        return $ele;
     }
 
 
@@ -272,7 +301,7 @@ class ActiveElement
             } elseif ($value === true) {
                 $output[] = ' ' . htmlspecialchars($name);
             } elseif ($name === 'style') {
-                $output[] = ' style' . '="' . htmlspecialchars($string, ENT_COMPAT | ENT_HTML401) . '"';
+                $output[] = ' style' . '="' . htmlspecialchars($string, ENT_COMPAT | ENT_HTML5) . '"';
             } else {
                 $output[] = ' ' . htmlspecialchars($name) . '="' . htmlspecialchars($value) . '"';
             }
@@ -290,7 +319,9 @@ class ActiveElement
 
         $output = [];
         foreach ($this->children as $element) {
-            $output[] = $element->build();
+            if ($element->belongsTo === $this) {
+                $output[] = $element->build();
+            }
         }
         return implode('', $output);
     }
@@ -314,13 +345,13 @@ class ActiveElement
     {
         $output = [];
 
-        if (!is_null($this->before)) {
+        if (!is_null($this->before) && ($this->belongsTo === $this)) {
             $output[] = $this->before->build();
         }
 
         $output[] = $this->buildMe();
 
-        if (!is_null($this->after)) {
+        if (!is_null($this->after) && ($this->belongsTo === $this)) {
             $output[] = $this->after->build();
         }
 
