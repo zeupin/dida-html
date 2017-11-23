@@ -47,6 +47,8 @@ class ActiveElement
 
     protected $innerHTML = '';
 
+    protected $forceInnerHTML = null;
+
     public $belongsTo = null;
 
     protected $wrapper = null;
@@ -261,7 +263,11 @@ class ActiveElement
 
     public function getInnerHTML()
     {
-        return $this->innerHTML . $this->buildChildren();
+        if (is_null($this->forceInnerHTML)) {
+            return $this->innerHTML . $this->buildChildren();
+        } else {
+            return $this->forceInnerHTML;
+        }
     }
 
 
@@ -271,6 +277,7 @@ class ActiveElement
             $ele = new \Dida\HTML\ActiveElement($element);
         } elseif (is_object($element) && is_a($element, __CLASS__)) {
             $ele = $element;
+            $this->antiRecursive($ele, $this);
         } else {
             throw new HtmlException(null, HtmlException::INVALID_ELEMENT_TYPE);
         }
@@ -278,6 +285,42 @@ class ActiveElement
         $ele->belongsTo = $this;
 
         return $ele;
+    }
+
+
+    protected function antiRecursive(&$tocheck, &$which)
+    {
+        if (!is_null($tocheck->before)) {
+            if ($tocheck->before === $which) {
+                $tocheck->before = null;
+            } else {
+                $this->antiRecursive($tocheck->before, $which);
+            }
+        }
+
+        if (!is_null($tocheck->after)) {
+            if ($tocheck->after === $which) {
+                $tocheck->after = null;
+            } else {
+                $this->antiRecursive($tocheck->after, $which);
+            }
+        }
+
+        if (!is_null($tocheck->wrapper)) {
+            if ($tocheck->wrapper === $which) {
+                $tocheck->wrapper = null;
+            } else {
+                $this->antiRecursive($tocheck->wrapper, $which);
+            }
+        }
+
+        foreach ($tocheck->children as $index => $child) {
+            if ($child === $which) {
+                unset($tocheck->children[$index]);
+            } else {
+                $this->antiRecursive($child, $which);
+            }
+        }
     }
 
 
@@ -342,9 +385,9 @@ class ActiveElement
         }
 
         $output = [];
-        foreach ($this->children as $element) {
-            if ($element->belongsTo === $this) {
-                $output[] = $element->build();
+        foreach ($this->children as $child) {
+            if ($child->belongsTo === $this) {
+                $output[] = $child->build();
             }
         }
         return implode('', $output);
@@ -384,8 +427,10 @@ class ActiveElement
         if (is_null($this->wrapper)) {
             return $result;
         } else {
-            $this->wrapper->innerHTML = &$result;
-            return $this->wrapper->build();
+            $this->wrapper->forceInnerHTML = &$result;
+            $ret = $this->wrapper->build();
+            $this->wrapper->forceInnerHTML = null;
+            return $ret;
         }
     }
 }
