@@ -66,11 +66,9 @@ class ActiveElement
     }
 
 
-    public static function &make($tag = null, $more = null)
+    public static function make($tag = null, $more = null)
     {
-        $element = new ActiveElement();
-        $element->setTag($tag, $more);
-
+        $element = new ActiveElement($tag, $more);
         return $element;
     }
 
@@ -267,19 +265,12 @@ class ActiveElement
     }
 
 
-    public function &wrap($tag = 'div')
-    {
-        $this->wrapper = new \Dida\HTML\ActiveElement($tag);
-        return $this->wrapper;
-    }
-
-
-    protected function &addNew(&$element = null)
+    protected function addNew($element = null)
     {
         if (is_null($element) || is_string($element)) {
             $ele = new \Dida\HTML\ActiveElement($element);
         } elseif (is_object($element) && is_a($element, __CLASS__)) {
-            $ele = &$element;
+            $ele = $element;
         } else {
             throw new HtmlException(null, HtmlException::INVALID_ELEMENT_TYPE);
         }
@@ -290,26 +281,37 @@ class ActiveElement
     }
 
 
-    public function &addBefore($element = null)
+    public function wrap($element = 'div')
     {
         $ele = $this->addNew($element);
-        $this->before = &$ele;
+
+        $ele->children = [];
+        $this->wrapper = $ele;
+
         return $ele;
     }
 
 
-    public function &addAfter($element = null)
+    public function addBefore($element = null)
     {
         $ele = $this->addNew($element);
-        $this->after = &$ele;
+        $this->before = $ele;
         return $ele;
     }
 
 
-    public function &addChild($element = null)
+    public function addAfter($element = null)
     {
         $ele = $this->addNew($element);
-        $this->children[] = &$ele;
+        $this->after = $ele;
+        return $ele;
+    }
+
+
+    public function addChild($element = null)
+    {
+        $ele = $this->addNew($element);
+        $this->children[] = $ele;
         return $ele;
     }
 
